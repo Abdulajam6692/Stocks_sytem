@@ -1,0 +1,92 @@
+body {
+  background: linear-gradient(120deg, #0f172a, #020617);
+  color: white;
+  font-family: "Poppins", sans-serif;
+}
+
+.login-container {
+  width: 340px;
+  margin: 120px auto;
+  padding: 30px;
+  background: rgba(30, 41, 59, 0.95);
+  border-radius: 14px;
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);
+  animation: fadeIn 0.6s ease;
+}
+
+.login-container h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #38bdf8;
+}
+
+.login-container input {
+  width: 100%;
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+  background: #020617;
+  color: white;
+  font-size: 14px;
+}
+
+.login-container button {
+  width: 100%;
+  margin-top: 15px;
+  padding: 12px;
+  font-size: 15px;
+  background: linear-gradient(90deg, #2563eb, #38bdf8);
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.3s;
+}
+
+.login-container button:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 12px #38bdf8;
+}
+
+.error-text {
+  color: #f87171;
+  text-align: center;
+  font-size: 14px;
+}
+
+.signup-link {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 14px;
+}
+
+.signup-link span {
+  color: #38bdf8;
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(30px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+.password-box {
+  position: relative;
+}
+
+.password-box input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.password-box span {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 18px;
+  color: #38bdf8;
+}

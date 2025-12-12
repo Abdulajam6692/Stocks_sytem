@@ -1,0 +1,426 @@
+:root{
+  --bg:#0f1720;
+  --card:#121826;
+  --muted:#9aa3b2;
+  --accent:#35c3a6;
+  --danger:#ff6b6b;
+  --border: rgba(255,255,255,0.06);
+  --glass-glow: 0 8px 30px rgba(60,100,140,0.12);
+  font-family: Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+*{
+  box-sizing: border-box;
+}
+
+body{
+  margin:0;
+  padding:24px;
+  background: linear-gradient(180deg,#0c1116 0%, #0b1015 100%);
+  color:#e6eef6;
+  font-size:14px;
+}
+
+/* ===========================
+   ✅ MAIN GRID LAYOUT
+   LEFT = STOCKS
+   RIGHT = CHART + PORTFOLIO
+=========================== */
+.dashboard-container{
+  display:grid;
+  grid-template-columns: 300px 1fr;
+  grid-template-rows:auto 1fr;
+  gap:24px;
+  max-width:1400px;
+  margin:auto;
+}
+
+/* ===========================
+   ✅ TOP BAR
+=========================== */
+.top-bar{
+  grid-column:1 / 3;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:18px 22px;
+  border-radius:14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.03));
+  border:1px solid var(--border);
+  box-shadow: var(--glass-glow);
+}
+
+.top-bar h1{
+  margin:0;
+  font-size:20px;
+}
+
+.subtext{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.top-actions{
+  display:flex;
+  gap:12px;
+}
+
+/* ===========================
+   ✅ LEFT PANEL (STOCKS LIST)
+=========================== */
+.left-panel{
+  border-radius:16px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.03));
+  border:1px solid var(--border);
+  padding:18px;
+  box-shadow: var(--glass-glow);
+}
+
+.left-panel h3{
+  margin:0;
+  font-size:16px;
+  color:#e9f2ff;
+}
+
+.stock-list{
+  list-style:none;
+  padding:0;
+  margin-top:14px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.stock-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px;
+  border-radius:12px;
+  background: rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.04);
+  cursor:pointer;
+  transition:all 0.2s ease;
+}
+
+.stock-item:hover{
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(30,60,90,0.25);
+}
+
+.stock-item.active{
+  border-color:#4fc3f7;
+  box-shadow: 0 0 16px rgba(79,195,247,0.3);
+}
+
+.ticker{
+  font-weight:600;
+}
+
+.price{
+  color:var(--muted);
+  font-size:13px;
+}
+
+/* ===========================
+   ✅ MASTER BUTTON SYSTEM
+=========================== */
+.btn{
+  padding:8px 16px;
+  border-radius:999px;
+  font-weight:600;
+  font-size:13px;
+  border:none;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  box-shadow: 0 0 12px rgba(0,0,0,0.3);
+}
+
+.btn.small{
+  padding:6px 12px;
+  font-size:12px;
+}
+
+/* ✅ BUY */
+.btn.buy{
+  background: linear-gradient(90deg, #2de2b1, #35c3a6);
+  color:#062525;
+}
+
+.btn.buy:hover{
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+/* ✅ SELL */
+.btn.sell{
+  background: linear-gradient(90deg,#ff7a7a,#ff5c5c);
+  color:#fff;
+}
+
+.btn.sell:hover{
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+/* ===========================
+   ✅ RIGHT MAIN PANEL
+=========================== */
+.main-panel{
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+}
+
+/* ===========================
+   ✅ CHART BOX
+=========================== */
+.chart-box{
+  width:100%;
+  padding:20px;
+  height:440px;
+  border-radius:18px;
+  background: linear-gradient(180deg, rgba(20,25,40,0.95), rgba(20,25,40,0.9));
+  border:1px solid var(--border);
+  box-shadow: var(--glass-glow);
+}
+
+.chart-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
+}
+
+.trade-controls-inline{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.trade-controls-inline select,
+.trade-controls-inline input{
+  background:transparent;
+  color:white;
+  border:1px solid rgba(255,255,255,0.06);
+  padding:8px 12px;
+  border-radius:8px;
+}
+
+/* ===========================
+   ✅ CHART AREA
+=========================== */
+.chart-area{
+  height:360px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background: rgba(255,255,255,0.02);
+  border-radius:14px;
+}
+
+.stock-chart{
+  width:100%;
+  height:100%;
+}
+
+/* ===========================
+   ✅ PORTFOLIO
+=========================== */
+.portfolio-box{
+  width:100%;
+  padding:20px;
+  border-radius:18px;
+  background: linear-gradient(180deg, rgba(20,25,40,0.95), rgba(20,25,40,0.9));
+  border:1px solid var(--border);
+  box-shadow: var(--glass-glow);
+}
+
+.holdings-table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+
+.holdings-table th,
+.holdings-table td{
+  padding:10px;
+  border-bottom:1px dashed rgba(255,255,255,0.06);
+  text-align:left;
+  color:var(--muted);
+}
+
+.holdings-table thead th{
+  color:#cfe9ff;
+  font-weight:600;
+}
+
+.pl-pos{ color:#7ff2c1; font-weight:600; }
+.pl-neg{ color:#ff8b8b; font-weight:600; }
+
+/* ===========================
+   ✅ BOTTOM SUMMARY
+=========================== */
+.portfolio-summary{
+  margin-top:14px;
+  font-size:15px;
+  color:#d9efff;
+}
+
+/* ===========================
+   ✅ RESPONSIVE
+=========================== */
+@media (max-width:1100px){
+  .dashboard-container{
+    grid-template-columns:1fr;
+  }
+
+  .top-bar{
+    grid-column:1 / 2;
+  }
+}
+
+/* ===============================
+   ✅ FORCE ALL BUTTONS TO USE CUSTOM UI
+   ✅ FIX WHITE DEFAULT BUTTON ISSUE
+================================ */
+
+button{
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background: none;
+  border: none;
+  outline: none;
+  color: inherit;
+  font-family: inherit;
+}
+
+/* ✅ MASTER BUTTON BASE */
+.btn{
+  padding:8px 16px;
+  border-radius:999px;
+  font-weight:600;
+  font-size:13px;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  box-shadow: 0 0 12px rgba(0,0,0,0.3);
+}
+
+/* ✅ SMALL BUY / SELL */
+.btn.small{
+  padding:6px 12px;
+  font-size:12px;
+}
+
+/* ✅ BUY BUTTON (ALL PLACES) */
+.btn.buy{
+  background: linear-gradient(90deg, #2de2b1, #35c3a6);
+  color:#062525;
+  box-shadow: 0 0 14px rgba(45,226,177,0.45);
+}
+
+.btn.buy:hover{
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+/* ✅ SELL BUTTON (ALL PLACES) */
+.btn.sell{
+  background: linear-gradient(90deg,#ff7a7a,#ff5c5c);
+  color:#fff;
+  box-shadow: 0 0 14px rgba(255,90,90,0.45);
+}
+
+.btn.sell:hover{
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+/* ✅ TOP RIGHT BUTTONS */
+.btn-outline{
+  background: rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  color:#cfe9ff;
+}
+
+.btn-outline:hover{
+  background: rgba(255,255,255,0.1);
+}
+
+.btn-ghost{
+  background: rgba(255,255,255,0.02);
+  border:1px dashed rgba(255,255,255,0.12);
+  color:#d9efff;
+}
+
+.btn-ghost:hover{
+  background: rgba(255,255,255,0.07);
+}
+
+/* ------- Dropdown / trade controls fixes ------- */
+
+/* Ensure parent containers allow dropdown to overflow */
+.chart-header,
+.chart-area,
+.chart-box,
+.main-panel {
+  overflow: visible !important; /* allow dropdown to render above chart */
+}
+
+/* Style the select to match app theme */
+.trade-controls-inline select {
+  min-width: 120px;
+  max-width: 220px;
+  padding: 10px 36px 10px 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(180deg, #07121b 0%, #04121a 100%);
+  color: #d1e8f2;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(2,8,15,0.45);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  position: relative;
+  z-index: 50; /* ensure select sits above chart canvas */
+  cursor: pointer;
+}
+
+/* Add a custom caret using a small SVG data-uri */
+.trade-controls-inline select {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23a7f3d0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 18px;
+}
+
+/* Option styling - modern browsers will honor some properties */
+.trade-controls-inline select option {
+  background: #05131a;
+  color: #cfeef0;
+  padding: 8px 12px;
+}
+
+/* If you also use a dropdown-style on small screens, ensure spacing */
+.trade-controls-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Improve stacking context for the chart area and controls */
+.dashboard-container,
+.main-panel,
+.chart-box {
+  position: relative;
+}
+
+/* If any ancestor has transform/overflow which creates new stacking context,
+   the dropdown may still be clipped. If you have elements with `transform`,
+   remove it or set the select's container to be outside that transformed element. */
+
+/* Small responsive tweak */
+@media (max-width: 900px) {
+  .trade-controls-inline select { min-width: 100px; }
+  .chart-area { overflow: visible; }
+}

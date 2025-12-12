@@ -1,0 +1,141 @@
+/* =======================
+      PAGE LAYOUT
+========================== */
+.history-page {
+  width: 100%;
+  min-height: 100vh;
+  background: #0d1117; 
+  color: #e6edf3;
+  padding: 40px 60px;      /* wider layout */
+  box-sizing: border-box;
+  font-family: "Inter", Arial, sans-serif;
+}
+
+/* =======================
+      TOP BAR
+========================== */
+.history-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 35px;
+}
+
+.history-top h1 {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  margin: 0;
+}
+
+/* Back Button → moved top right */
+.history-top button {
+  background: #ef4444;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s ease;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0px 0px 12px rgba(255, 90, 90, 0.3);
+}
+
+.history-top button:hover {
+  background: #b91c1c;
+  transform: translateY(-2px);
+}
+
+/* =======================
+      TABLE WRAPPER
+========================== */
+.history-table-wrap {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 25px 30px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 18px rgba(0,0,0,0.45);
+}
+
+/* =======================
+      HISTORY TABLE
+========================== */
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  table-layout: fixed;          /* makes column widths consistent */
+}
+
+.history-table thead {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.history-table th {
+  text-align: left;
+  padding: 14px 10px;
+  font-weight: 700;
+  font-size: 16px;
+  color: #cbd5e1;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.history-table td {
+  padding: 16px 12px;
+  font-size: 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  color: #e6edf3;
+}
+
+/* Expand the table view visually */
+.history-table th:nth-child(2),
+.history-table td:nth-child(2) {
+  width: 120px;
+}
+
+.history-table th:nth-child(5),
+.history-table td:nth-child(5) {
+  width: 160px;
+}
+
+/* Hover row effect */
+.history-table tr:hover {
+  background: rgba(255,255,255,0.05);
+  transition: 0.2s ease;
+}
+
+/* BUY badge */
+.action-buy {
+  color: #10b981;
+  font-weight: 700;
+}
+
+/* SELL badge */
+.action-sell {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+/* P/L color coding */
+.pl-pos {
+  color: #22c55e;
+  font-weight: 700;
+}
+
+.pl-neg {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+/* =======================
+    EMPTY MESSAGE
+========================== */
+.center, .no-history {
+  text-align: center;
+  padding: 25px;
+  color: #94a3b8;
+  font-size: 16px;
+}
