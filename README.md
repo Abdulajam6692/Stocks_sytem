@@ -86,7 +86,7 @@ Returns only entries belonging to logged-in user
 
 5. Real-Time Live Prices (Socket.IO)
 
-Every 5 seconds backend:
+Every  seconds backend:
 
 Randomizes each stock price (+10 / –10)
 
