@@ -432,7 +432,6 @@ export default Dashboard;
 */
 
 
-
 // src/components/Dashboard.jsx
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -448,13 +447,13 @@ function Dashboard() {
 
   const [user, setUser] = useState(null);
   const [stocks, setStocks] = useState([]);
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState("");
   const [qty, setQty] = useState(1);
 
   const socketRef = useRef(null);
   const chartSeriesRef = useRef({});
 
-  /* ---------- helpers ---------- */
+  /* ================= HELPERS ================= */
 
   const safeParse = (val, fallback) => {
     try {
@@ -475,7 +474,7 @@ function Dashboard() {
     return s ? Number(s.current_price) : 0;
   };
 
-  /* ---------- API ---------- */
+  /* ================= API ================= */
 
   const fetchMe = async () => {
     const token = localStorage.getItem("token");
@@ -507,25 +506,23 @@ function Dashboard() {
     const map = chartSeriesRef.current;
     data.stocks.forEach(s => {
       if (!map[s.ticker]) map[s.ticker] = [];
-      if (map[s.ticker].length === 0) {
+      if (map[s.ticker].length === 0)
         map[s.ticker].push(Number(s.current_price));
-      }
     });
-
-    // ✅ AUTO SELECT FIRST STOCK
-    if (!selected && data.stocks.length > 0) {
-      setSelected(data.stocks[0].ticker);
-    }
   };
 
-  /* ---------- INIT + SOCKET ---------- */
+  /* ================= SOCKET + INIT ================= */
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const stored = localStorage.getItem("user");
-    if (!token || !stored) return navigate("/");
+    const storedUser = localStorage.getItem("user");
 
-    setUser(JSON.parse(stored));
+    if (!token || !storedUser) {
+      navigate("/");
+      return;
+    }
+
+    setUser(JSON.parse(storedUser));
     fetchMe();
     fetchStocks();
 
@@ -538,15 +535,15 @@ function Dashboard() {
       latestStocks.forEach(s => {
         if (!map[s.ticker]) map[s.ticker] = [];
         map[s.ticker].push(Number(s.current_price));
-        if (map[s.ticker].length > MAX_POINTS) {
+        if (map[s.ticker].length > MAX_POINTS)
           map[s.ticker] = map[s.ticker].slice(-MAX_POINTS);
-        }
       });
 
       fetchMe();
     });
 
     socketRef.current.on("user_update", (u) => {
+      if (!u) return;
       u.subscriptions = safeParse(u.subscriptions, []);
       u.holdings = safeParse(u.holdings, {});
       setUser(u);
@@ -554,66 +551,101 @@ function Dashboard() {
     });
 
     return () => socketRef.current?.disconnect();
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ---------- TRADE ---------- */
+  /* ================= BUY / SELL ================= */
 
-  const buy = async () => {
-    if (!selected) return alert("Select stock");
+  const buy = async (ticker) => {
     const token = localStorage.getItem("token");
+    if (!token) return logout();
 
-    await fetch(`${API_BASE}/buy`, {
+    const res = await fetch(`${API_BASE}/buy`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ ticker: selected, qty: Number(qty) }),
+      body: JSON.stringify({ ticker, qty: Number(qty) }),
     });
+
+    const data = await res.json();
+    if (!data.ok) alert(data.error || "Buy failed");
   };
 
-  const sell = async () => {
-    if (!selected) return alert("Select stock");
+  const sell = async (ticker) => {
     const token = localStorage.getItem("token");
+    if (!token) return logout();
 
-    await fetch(`${API_BASE}/sell`, {
+    const res = await fetch(`${API_BASE}/sell`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ ticker: selected, qty: Number(qty) }),
+      body: JSON.stringify({ ticker, qty: Number(qty) }),
     });
+
+    const data = await res.json();
+    if (!data.ok) alert(data.error || "Sell failed");
   };
 
-  if (!user) return <h2 style={{ textAlign: "center" }}>Loading…</h2>;
+  /* ================= HOLDINGS ================= */
 
+  const holdingsRows = () => {
+    const h = safeParse(user.holdings, {});
+    const rows = [];
+    let totalPL = 0;
+
+    for (const t of Object.keys(h)) {
+      const qtyHeld = Number(h[t].qty);
+      const avg = Number(h[t].avg_buy);
+      const current = getCurrentPrice(t);
+      const pl = (current - avg) * qtyHeld;
+      totalPL += pl;
+      rows.push({ ticker: t, qty: qtyHeld, avg, current, pl });
+    }
+    return { rows, totalPL };
+  };
+
+  if (!user) {
+    return <h2 style={{ textAlign: "center" }}>Loading dashboard…</h2>;
+  }
+
+  const { rows: holdRows, totalPL } = holdingsRows();
   const series = chartSeriesRef.current[selected] || [];
 
-  /* ---------- CHART ---------- */
+  /* ================= CHART ================= */
 
-  const Chart = ({ data }) => {
-    if (!data.length) return <div className="chart-empty">Waiting for data…</div>;
+  const Chart = ({ data = [], width = 900, height = 360 }) => {
+    if (!data.length) return <div className="chart-empty">No data yet</div>;
 
+    const padding = 20;
     const min = Math.min(...data);
     const max = Math.max(...data);
     const range = Math.max(1, max - min);
 
     const points = data.map((v, i) => {
-      const x = (i / (data.length - 1)) * 100;
-      const y = 100 - ((v - min) / range) * 100;
+      const x = padding + (i / (data.length - 1)) * (width - padding * 2);
+      const y = padding + (1 - (v - min) / range) * (height - padding * 2);
       return `${x},${y}`;
     }).join(" ");
 
     return (
-      <svg viewBox="0 0 100 100" className="stock-chart" preserveAspectRatio="none">
-        <polyline points={points} fill="none" stroke="#4fc3f7" strokeWidth="2" />
+      <svg width={width} height={height} className="stock-chart">
+        <polyline
+          points={points}
+          fill="none"
+          stroke="#4fc3f7"
+          strokeWidth="1.2"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
       </svg>
     );
   };
 
-  /* ---------- UI ---------- */
+  /* ================= UI ================= */
 
   return (
     <div className="dashboard-container grid">
@@ -622,9 +654,14 @@ function Dashboard() {
           <h1>Welcome to Live Stocks</h1>
           <div className="subtext">User is {user.name}</div>
         </div>
+
         <div className="top-actions">
-          <button className="btn btn-outline" onClick={() => navigate("/history")}>History</button>
-          <button className="btn btn-ghost" onClick={logout}>Logout</button>
+          <button onClick={() => navigate("/history")} className="btn btn-outline">
+            History
+          </button>
+          <button onClick={logout} className="btn btn-ghost">
+            Logout
+          </button>
         </div>
       </header>
 
@@ -647,15 +684,63 @@ function Dashboard() {
       <main className="main-panel">
         <div className="chart-box">
           <div className="chart-header">
-            <h2>Price Chart — {selected}</h2>
+            <h2>Price Chart — {selected || "Select a stock"}</h2>
+
             <div className="trade-controls-inline">
-              <input type="number" min="1" value={qty} onChange={e => setQty(e.target.value)} />
-              <button className="btn buy" onClick={buy}>Buy</button>
-              <button className="btn sell" onClick={sell}>Sell</button>
+              <select value={selected} onChange={(e) => setSelected(e.target.value)}>
+                <option value="">Select</option>
+                {stocks.map(s => (
+                  <option key={s.ticker} value={s.ticker}>{s.ticker}</option>
+                ))}
+              </select>
+
+              <input type="number" min="1" value={qty}
+                onChange={(e) => setQty(e.target.value)} />
+
+              <button onClick={() => buy(selected)} className="btn buy">Buy</button>
+              <button onClick={() => sell(selected)} className="btn sell">Sell</button>
             </div>
           </div>
+
           <div className="chart-area">
             <Chart data={series} />
+          </div>
+        </div>
+
+        <div className="portfolio-box">
+          <h3>Current Holdings</h3>
+
+          <table className="holdings-table">
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Qty</th>
+                <th>Avg Buy</th>
+                <th>Current</th>
+                <th>P/L</th>
+              </tr>
+            </thead>
+            <tbody>
+              {holdRows.length === 0 ? (
+                <tr><td colSpan="5" style={{ textAlign: "center" }}>No holdings</td></tr>
+              ) : (
+                holdRows.map(r => (
+                  <tr key={r.ticker}>
+                    <td>{r.ticker}</td>
+                    <td>{r.qty}</td>
+                    <td>₹ {r.avg.toFixed(2)}</td>
+                    <td>₹ {r.current.toFixed(2)}</td>
+                    <td className={r.pl >= 0 ? "pl-pos" : "pl-neg"}>
+                      ₹ {r.pl.toFixed(2)}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+
+          <div className="portfolio-summary">
+            <strong>Total P/L: ₹ {totalPL.toFixed(2)}</strong>
           </div>
         </div>
       </main>
