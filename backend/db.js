@@ -1,16 +1,14 @@
-const mysql = require("mysql2/promise");
+// backend/db.js
+const { Pool } = require("pg");
 
-const pool = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "",        // put your MySQL password if you have one
-  database: "stock_system",
-  waitForConnections: true,
-  connectionLimit: 10
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 module.exports = pool;
-
 
 /*
    here blow is the database creation 
