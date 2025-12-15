@@ -433,7 +433,7 @@ export default Dashboard;
 
 
 
-
+// src/components/Dashboard.jsx
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
@@ -448,13 +448,13 @@ function Dashboard() {
 
   const [user, setUser] = useState(null);
   const [stocks, setStocks] = useState([]);
-  const [selected, setSelected] = useState("");
+  const [selected, setSelected] = useState(null);
   const [qty, setQty] = useState(1);
 
   const socketRef = useRef(null);
   const chartSeriesRef = useRef({});
 
-  /* ---------------- helpers ---------------- */
+  /* ---------- helpers ---------- */
 
   const safeParse = (val, fallback) => {
     try {
@@ -470,7 +470,12 @@ function Dashboard() {
     navigate("/");
   };
 
-  /* ---------------- API calls ---------------- */
+  const getCurrentPrice = (ticker) => {
+    const s = stocks.find(x => x.ticker === ticker);
+    return s ? Number(s.current_price) : 0;
+  };
+
+  /* ---------- API ---------- */
 
   const fetchMe = async () => {
     const token = localStorage.getItem("token");
@@ -500,25 +505,27 @@ function Dashboard() {
     setStocks(data.stocks);
 
     const map = chartSeriesRef.current;
-    data.stocks.forEach((s) => {
+    data.stocks.forEach(s => {
       if (!map[s.ticker]) map[s.ticker] = [];
-      if (map[s.ticker].length === 0)
+      if (map[s.ticker].length === 0) {
         map[s.ticker].push(Number(s.current_price));
+      }
     });
+
+    // ✅ AUTO SELECT FIRST STOCK
+    if (!selected && data.stocks.length > 0) {
+      setSelected(data.stocks[0].ticker);
+    }
   };
 
-  /* ---------------- socket + init ---------------- */
+  /* ---------- INIT + SOCKET ---------- */
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
+    const stored = localStorage.getItem("user");
+    if (!token || !stored) return navigate("/");
 
-    if (!token || !storedUser) {
-      navigate("/");
-      return;
-    }
-
-    setUser(JSON.parse(storedUser));
+    setUser(JSON.parse(stored));
     fetchMe();
     fetchStocks();
 
@@ -528,18 +535,18 @@ function Dashboard() {
       setStocks(latestStocks);
 
       const map = chartSeriesRef.current;
-      latestStocks.forEach((s) => {
+      latestStocks.forEach(s => {
         if (!map[s.ticker]) map[s.ticker] = [];
         map[s.ticker].push(Number(s.current_price));
-        if (map[s.ticker].length > MAX_POINTS)
+        if (map[s.ticker].length > MAX_POINTS) {
           map[s.ticker] = map[s.ticker].slice(-MAX_POINTS);
+        }
       });
 
       fetchMe();
     });
 
     socketRef.current.on("user_update", (u) => {
-      if (!u) return;
       u.subscriptions = safeParse(u.subscriptions, []);
       u.holdings = safeParse(u.holdings, {});
       setUser(u);
@@ -547,114 +554,111 @@ function Dashboard() {
     });
 
     return () => socketRef.current?.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, []);
 
-  /* ---------------- trade ---------------- */
+  /* ---------- TRADE ---------- */
 
-  const buy = async (ticker) => {
+  const buy = async () => {
+    if (!selected) return alert("Select stock");
     const token = localStorage.getItem("token");
-    if (!token) return logout();
 
-    const res = await fetch(`${API_BASE}/buy`, {
+    await fetch(`${API_BASE}/buy`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ ticker, qty: Number(qty) }),
+      body: JSON.stringify({ ticker: selected, qty: Number(qty) }),
     });
-
-    const data = await res.json();
-    if (!data.ok) alert(data.error || "Buy failed");
   };
 
-  const sell = async (ticker) => {
+  const sell = async () => {
+    if (!selected) return alert("Select stock");
     const token = localStorage.getItem("token");
-    if (!token) return logout();
 
-    const res = await fetch(`${API_BASE}/sell`, {
+    await fetch(`${API_BASE}/sell`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ ticker, qty: Number(qty) }),
+      body: JSON.stringify({ ticker: selected, qty: Number(qty) }),
     });
-
-    const data = await res.json();
-    if (!data.ok) alert(data.error || "Sell failed");
   };
 
-  /* ---------------- render guards ---------------- */
+  if (!user) return <h2 style={{ textAlign: "center" }}>Loading…</h2>;
 
-  if (!user) {
-    return <h2 style={{ textAlign: "center" }}>Loading dashboard…</h2>;
-  }
+  const series = chartSeriesRef.current[selected] || [];
 
-  /* ---------------- UI ---------------- */
+  /* ---------- CHART ---------- */
+
+  const Chart = ({ data }) => {
+    if (!data.length) return <div className="chart-empty">Waiting for data…</div>;
+
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    const range = Math.max(1, max - min);
+
+    const points = data.map((v, i) => {
+      const x = (i / (data.length - 1)) * 100;
+      const y = 100 - ((v - min) / range) * 100;
+      return `${x},${y}`;
+    }).join(" ");
+
+    return (
+      <svg viewBox="0 0 100 100" className="stock-chart" preserveAspectRatio="none">
+        <polyline points={points} fill="none" stroke="#4fc3f7" strokeWidth="2" />
+      </svg>
+    );
+  };
+
+  /* ---------- UI ---------- */
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container grid">
       <header className="top-bar">
-        <h2>Welcome, {user.name}</h2>
         <div>
-          <button onClick={() => navigate("/history")}>History</button>
-          <button onClick={logout}>Logout</button>
+          <h1>Welcome to Live Stocks</h1>
+          <div className="subtext">User is {user.name}</div>
+        </div>
+        <div className="top-actions">
+          <button className="btn btn-outline" onClick={() => navigate("/history")}>History</button>
+          <button className="btn btn-ghost" onClick={logout}>Logout</button>
         </div>
       </header>
 
-      <div className="content">
-        <aside className="stock-panel">
-          <h3>Live Stocks</h3>
-          {stocks.map((s) => (
-            <div
+      <aside className="left-panel">
+        <h3>Available Stocks</h3>
+        <ul className="stock-list">
+          {stocks.map(s => (
+            <li
               key={s.ticker}
-              className={`stock-item ${
-                selected === s.ticker ? "active" : ""
-              }`}
+              className={`stock-item ${selected === s.ticker ? "active" : ""}`}
               onClick={() => setSelected(s.ticker)}
             >
-              <strong>{s.ticker}</strong>
-              <span>₹ {Number(s.current_price).toFixed(2)}</span>
-            </div>
+              <div className="ticker">{s.ticker}</div>
+              <div className="price">₹ {Number(s.current_price).toFixed(2)}</div>
+            </li>
           ))}
-        </aside>
+        </ul>
+      </aside>
 
-        <main className="trade-panel">
-          <h3>Trade</h3>
-
-          <select value={selected} onChange={(e) => setSelected(e.target.value)}>
-            <option value="">Select Stock</option>
-            {stocks.map((s) => (
-              <option key={s.ticker} value={s.ticker}>
-                {s.ticker}
-              </option>
-            ))}
-          </select>
-
-          <input
-            type="number"
-            min="1"
-            value={qty}
-            onChange={(e) => setQty(e.target.value)}
-          />
-
-          <div className="actions">
-            <button onClick={() => buy(selected)} disabled={!selected}>
-              Buy
-            </button>
-            <button onClick={() => sell(selected)} disabled={!selected}>
-              Sell
-            </button>
+      <main className="main-panel">
+        <div className="chart-box">
+          <div className="chart-header">
+            <h2>Price Chart — {selected}</h2>
+            <div className="trade-controls-inline">
+              <input type="number" min="1" value={qty} onChange={e => setQty(e.target.value)} />
+              <button className="btn buy" onClick={buy}>Buy</button>
+              <button className="btn sell" onClick={sell}>Sell</button>
+            </div>
           </div>
-
-          <div className="summary">
-            <strong>Total P/L:</strong>{" "}
-            ₹ {Number(user.total_pl).toFixed(2)}
+          <div className="chart-area">
+            <Chart data={series} />
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
