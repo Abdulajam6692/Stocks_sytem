@@ -47,7 +47,6 @@ Live stock price updates using Socket.IO
 
 Prices auto-update every second
 
-Price fluctuations simulated (+10 / −10)
 
 Updates reflected instantly on all connected clients
 
